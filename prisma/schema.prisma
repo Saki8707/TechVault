@@ -20,6 +20,8 @@ model User {
   passwordHash String
   name        String
   role        Role     @default(USER)
+  avatar      String?
+  bio         String?  @db.Text
   createdAt   DateTime @default(now())
 
   permissions      SectionPermission[]

@@ -14,6 +14,7 @@ import { History } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canWriteSection, canReadSection } from "@/lib/permissions";
+import { getReadMode } from "@/lib/admin-mode";
 import { getSectionPath, isSectionHiddenFromNonAdmin } from "@/lib/sections";
 import { logArticleView } from "@/lib/search";
 import { getNotesForArticle } from "@/lib/notes";
@@ -48,14 +49,22 @@ export default async function ArticlePage({
   const canRead = await canReadSection(user ? { id: user.id, role: user.role } : null, id);
   if (!canRead) notFound();
 
+  const readMode = isAdmin && (await getReadMode());
+  // U Read Mode-u admin ne treba da vidi interne (ADMIN_ONLY) napomene - simuliramo
+  // gledanje kao obican User da bismo dobili tacno onaj skup napomena koji bi video.
+  const notesViewer = user
+    ? { id: user.id, role: readMode ? ("USER" as const) : user.role }
+    : undefined;
+
   const breadcrumb = await getSectionPath(id);
-  const notes = await getNotesForArticle(articleId, user ? { id: user.id, role: user.role } : undefined);
+  const notes = await getNotesForArticle(articleId, notesViewer);
 
   const canWrite = await canWriteSection(
     user ? { id: user.id, role: user.role } : null,
     id,
   );
-  const canAddNotes = user?.role === "ADMIN" || user?.role === "USER";
+  const effectiveCanWrite = canWrite && !readMode;
+  const canAddNotes = (user?.role === "ADMIN" || user?.role === "USER") && !readMode;
 
   if (session?.user) {
     // fire-and-forget - ne blokira renderovanje stranice
@@ -105,7 +114,7 @@ export default async function ArticlePage({
             <History className="h-4 w-4" />
             Istorija
           </Button>
-          {canWrite && <ArticleActions sectionId={id} articleId={articleId} />}
+          {effectiveCanWrite && <ArticleActions sectionId={id} articleId={articleId} />}
         </div>
       </div>
 
@@ -119,7 +128,7 @@ export default async function ArticlePage({
 
       <ArticleAttachments
         articleId={articleId}
-        canWrite={canWrite}
+        canWrite={effectiveCanWrite}
         initialAttachments={article.attachments.map((a) => ({
           id: a.id,
           filename: a.filename,

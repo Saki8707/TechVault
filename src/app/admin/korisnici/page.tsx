@@ -22,6 +22,8 @@ export default async function AdminKorisniciPage() {
     username: u.username,
     name: u.name,
     role: u.role,
+    avatar: u.avatar,
+    bio: u.bio,
     grants: u.permissions.map((p) => ({
       sectionId: p.sectionId,
       sectionName: p.section.name,

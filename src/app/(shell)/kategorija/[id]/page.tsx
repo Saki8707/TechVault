@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canWriteSection, getAccessibleSections } from "@/lib/permissions";
+import { getReadMode } from "@/lib/admin-mode";
 import { SectionContent } from "@/components/sections/section-content";
 import {
   getSectionTree,
@@ -61,6 +62,8 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
     user ? { id: user.id, role: user.role } : null,
     id,
   );
+  const readMode = isAdmin && (await getReadMode());
+  const effectiveCanWrite = canWrite && !readMode;
 
   const contentUpdatedLabel =
     section.contentUpdatedAt && section.contentUpdatedBy
@@ -96,7 +99,7 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight break-words">{section.name}</h1>
-        {canWrite && (
+        {effectiveCanWrite && (
           <Button className="self-start sm:self-auto" render={<Link href={`/kategorija/${id}/novi`} />}>
             <Plus className="h-4 w-4" />
             Novi dodatni fajl
@@ -108,7 +111,7 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
         <SectionContent
           sectionId={id}
           initialContentHtml={section.contentHtml}
-          canWrite={canWrite}
+          canWrite={effectiveCanWrite}
           isAdmin={isAdmin}
           updatedLabel={contentUpdatedLabel}
         />

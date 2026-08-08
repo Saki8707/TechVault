@@ -3,6 +3,7 @@ import Image from "next/image";
 import logo from "@/assets/logo.png";
 import { Shield } from "lucide-react";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/layout/user-menu";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -11,14 +12,17 @@ import { SearchBox } from "@/components/layout/search-box";
 import { SearchFilters } from "@/components/layout/search-filters";
 import { getSectionTree, flattenSectionTree, filterTreeByIds } from "@/lib/sections";
 import { getAccessibleSections } from "@/lib/permissions";
+import { getReadMode } from "@/lib/admin-mode";
 
 export async function Header() {
   const session = await auth();
   const user = session?.user;
   const isAdmin = user?.role === "ADMIN";
-  const [fullTree, { visible }] = await Promise.all([
+  const [fullTree, { visible }, avatarUser, readMode] = await Promise.all([
     getSectionTree(isAdmin),
     getAccessibleSections(user ? { id: user.id, role: user.role } : null),
+    user ? prisma.user.findUnique({ where: { id: user.id }, select: { avatar: true } }) : null,
+    isAdmin ? getReadMode() : Promise.resolve(false),
   ]);
   const tree = filterTreeByIds(fullTree, visible);
   const flatSections = flattenSectionTree(tree);
@@ -55,7 +59,13 @@ export async function Header() {
         )}
 
         <ThemeToggle />
-        <UserMenu name={user?.name} username={user?.username} isAdmin={isAdmin} />
+        <UserMenu
+          name={user?.name}
+          username={user?.username}
+          isAdmin={isAdmin}
+          avatar={avatarUser?.avatar ?? null}
+          readMode={readMode}
+        />
       </div>
     </header>
   );

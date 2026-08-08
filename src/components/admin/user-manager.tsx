@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -41,6 +42,8 @@ type UserRow = {
   username: string;
   name: string;
   role: Role;
+  avatar: string | null;
+  bio: string | null;
   grants: UserGrant[];
 };
 
@@ -174,12 +177,22 @@ export function UserManager({
       <div className="divide-y rounded-lg border">
         {users.map((user) => (
           <div key={user.id} className="flex items-center justify-between gap-3 px-4 py-3">
-            <div className="min-w-0">
+            <div className="flex min-w-0 items-start gap-3">
+              <Avatar className="mt-0.5 h-8 w-8 shrink-0">
+                {user.avatar && <AvatarImage src={user.avatar} alt={user.name} />}
+                <AvatarFallback className="bg-gradient-to-br from-brand-from to-brand-to text-xs text-white">
+                  {user.name.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-medium">{user.name}</span>
                 <span className="text-xs text-muted-foreground">@{user.username}</span>
                 {roleBadge(user.role)}
               </div>
+              {user.bio && (
+                <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{user.bio}</p>
+              )}
               {user.role === "USER" && (
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">
                   {user.grants.length > 0
@@ -199,6 +212,7 @@ export function UserManager({
                   Vidi samo kategorije označene kao &quot;guest&quot; u admin/kategorije
                 </p>
               )}
+              </div>
             </div>
             <div className="flex shrink-0 items-center gap-1">
               <Button variant="ghost" size="icon-sm" aria-label="Izmeni" onClick={() => openEdit(user)}>
