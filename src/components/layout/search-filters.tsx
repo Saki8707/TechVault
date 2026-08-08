@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Crosshair, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -103,7 +103,9 @@ export function SearchFilters({ sections }: { sections: FlatSection[] }) {
               onValueChange={(v) => updateParams({ filter: v === "none" ? null : v })}
             >
               <SelectTrigger className="h-9 w-full text-sm">
-                <SelectValue placeholder="Filter" />
+                <SelectValue placeholder="Filter">
+                  {(v: string) => STANDARD_FILTER_OPTIONS.find((opt) => opt.value === v)?.label}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {STANDARD_FILTER_OPTIONS.map((opt) => (
@@ -115,38 +117,65 @@ export function SearchFilters({ sections }: { sections: FlatSection[] }) {
             </Select>
           </div>
 
-          <p className="pt-1 text-sm font-medium">Napredni filter</p>
+          <div className="space-y-1.5 pt-1">
+            <p className="text-sm font-medium">Napredni filter</p>
+            <p className="text-xs text-muted-foreground">
+              Izaberi kategorije ispod, pa odredi da li se pretraga odnosi samo na njih ili ih
+              isključuje.
+            </p>
+          </div>
 
-          <div className="flex items-center justify-between rounded-md border px-3 py-2">
-            <div>
-              <p className="text-sm font-medium">
-                {draftMode === "only" ? "Pretražuj samo ovde" : "Isključi iz pretrage"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Uključi za &quot;isključi&quot;, isključi za &quot;samo ovde&quot;
-              </p>
-            </div>
-            <Switch
-              checked={draftMode === "exclude"}
-              onCheckedChange={(checked) => setDraftMode(checked ? "exclude" : "only")}
-            />
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              onClick={() => setDraftMode("only")}
+              className={`flex items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                draftMode === "only"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <Crosshair className="h-3.5 w-3.5" />
+              Samo izabrane
+            </button>
+            <button
+              type="button"
+              onClick={() => setDraftMode("exclude")}
+              className={`flex items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                draftMode === "exclude"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <Ban className="h-3.5 w-3.5" />
+              Isključi izabrane
+            </button>
           </div>
 
           <div className="max-h-72 space-y-0.5 overflow-y-auto rounded-md border p-2">
-            {sections.map((s) => (
-              <label
-                key={s.id}
-                className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/50"
-                style={{ paddingLeft: `${8 + s.depth * 16}px` }}
-              >
-                <span className="truncate">{s.name}</span>
-                <Switch
-                  checked={draftScope.includes(s.id)}
-                  onCheckedChange={() => toggleScopeSection(s.id)}
-                />
-              </label>
-            ))}
+            {sections.length === 0 ? (
+              <p className="p-2 text-center text-xs text-muted-foreground">Nema dostupnih kategorija.</p>
+            ) : (
+              sections.map((s) => (
+                <label
+                  key={s.id}
+                  className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/50"
+                  style={{ paddingLeft: `${8 + s.depth * 16}px` }}
+                >
+                  <span className="truncate">{s.name}</span>
+                  <Switch
+                    checked={draftScope.includes(s.id)}
+                    onCheckedChange={() => toggleScopeSection(s.id)}
+                  />
+                </label>
+              ))
+            )}
           </div>
+          {draftScope.length === 0 && (
+            <p className="text-xs text-muted-foreground">
+              Nijedna kategorija nije izabrana - napredni filter se neće primeniti.
+            </p>
+          )}
 
           <DialogFooter>
             <Button variant="outline" onClick={clearAdvanced}>
