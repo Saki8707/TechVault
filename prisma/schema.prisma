@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+  GUEST
+}
+
+model User {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  email       String?  @unique
+  passwordHash String
+  name        String
+  role        Role     @default(USER)
+  createdAt   DateTime @default(now())
+
+  permissions      SectionPermission[]
+  createdArticles  Article[]         @relation("ArticleCreatedBy")
+  updatedArticles  Article[]         @relation("ArticleUpdatedBy")
+  revisions        ArticleRevision[]
+  attachments      Attachment[]
+  searchLogs       SearchLog[]
+  articleViews     ArticleView[]
+  notes            ArticleNote[]
+  noteAuditLogs    NoteAuditLog[]
+  customEmoji      CustomEmoji[]
+}
+
+/** Evidencija unetih pretraga - za "najcesce pretrage" (po korisniku i globalno). */
+model SearchLog {
+  id        String   @id @default(cuid())
+  userId    String
+  query     String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([query])
+  @@index([userId])
+}
+
+/** Evidencija otvaranja clanaka - za "najcesce gledano" i "najcesce iz pretrage". */
+model ArticleView {
+  id         String   @id @default(cuid())
+  userId     String
+  articleId  String
+  fromSearch Boolean  @default(false)
+  viewedAt   DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+  @@index([userId])
+}
+
+// Hijerarhijsko stablo: kategorija -> podkategorija -> segment -> ... (proizvoljna dubina)
+model Section {
+  id       String    @id @default(cuid())
+  slug     String
+  name     String
+  order    Int       @default(0)
+  hidden   Boolean   @default(false) // vidljivo samo adminu (i njegova podstabla) kad je true
+  guestVisible Boolean @default(false) // sadrzaj dostupan Guest nalozima (nasledjuje se na podstablo)
+  parentId String?
+  parent   Section?  @relation("SectionTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Section[] @relation("SectionTree")
+
+  articles    Article[]
+  permissions SectionPermission[]
+  tagTargets  Tag[]               @relation("TagTargetSection")
+
+  @@unique([parentId, slug])
+}
+
+model SectionPermission {
+  id        String  @id @default(cuid())
+  userId    String
+  sectionId String
+  canRead   Boolean @default(false)
+  canWrite  Boolean @default(false)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sectionId])
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String
+  sectionId   String
+  contentHtml String   @db.Text
+  contentText String   @db.Text // plain-text mirror of contentHtml, used for full-text search
+  color       String?  // hex boja ikonice clanka u listama (npr. "#e11d48"), null = podrazumevana
+  createdById String
+  updatedById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  section   Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdBy User     @relation("ArticleCreatedBy", fields: [createdById], references: [id])
+  updatedBy User     @relation("ArticleUpdatedBy", fields: [updatedById], references: [id])
+
+  revisions   ArticleRevision[]
+  attachments Attachment[]
+  views       ArticleView[]
+  articleTags ArticleTag[]
+  tagTargets  Tag[]        @relation("TagTargetArticle")
+  notes       ArticleNote[]
+  noteAuditLogs NoteAuditLog[]
+
+  // Generisana tsvector kolona (vidi migration.sql), Prisma je ne upravlja direktno
+  searchVector Unsupported("tsvector")?
+
+  @@unique([sectionId, slug])
+}
+
+enum NoteVisibility {
+  ADMIN_ONLY // interna napomena - vidi samo admin
+  ALL_USERS  // napomena vidljiva svim ulogovanim korisnicima (User i Guest takodje)
+}
+
+/** Napomena vezana za konkretan deo teksta u clanku (ne za ceo clanak). */
+model ArticleNote {
+  id          String         @id @default(cuid())
+  articleId   String
+  anchorId    String         // odgovara data-note-id atributu na <span> (admin precizna selekcija) ili je generisan uuid za blok-napomene
+  blockId     String?        // stabilan hash sadrzaja pasusa - koristi se za napomene dodate iz prikaza clanka (bez write pristupa)
+  body        String         @db.Text
+  visibility  NoteVisibility @default(ADMIN_ONLY)
+  createdById String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdBy User    @relation(fields: [createdById], references: [id])
+
+  @@unique([articleId, anchorId])
+  @@index([articleId])
+  @@index([blockId])
+}
+
+enum NoteAction {
+  CREATED
+  UPDATED
+  DELETED
+}
+
+/** Log svake izmene napomene (ko je sta napisao/izmenio/obrisao) - vidljivo samo adminu. */
+model NoteAuditLog {
+  id         String         @id @default(cuid())
+  articleId  String
+  anchorId   String
+  action     NoteAction
+  body       String         @db.Text // pun sadrzaj napomene u trenutku akcije (i za DELETED - snimak pre brisanja)
+  visibility NoteVisibility
+  actorId    String
+  createdAt  DateTime       @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  actor   User    @relation(fields: [actorId], references: [id])
+
+  @@index([articleId])
+  @@index([createdAt])
+}
+
+enum TagTargetType {
+  ARTICLE
+  SECTION
+  URL
+  NONE
+}
+
+/** Imenovani tag sa opcionom admin-definisanom destinacijom (clanak / kategorija / spoljni URL). */
+model Tag {
+  id              String        @id @default(cuid())
+  name            String        @unique
+  targetType      TagTargetType @default(NONE)
+  targetArticleId String?
+  targetSectionId String?
+  targetUrl       String?
+  createdAt       DateTime      @default(now())
+
+  targetArticle Article? @relation("TagTargetArticle", fields: [targetArticleId], references: [id], onDelete: SetNull)
+  targetSection Section? @relation("TagTargetSection", fields: [targetSectionId], references: [id], onDelete: SetNull)
+
+  articleTags ArticleTag[]
+}
+
+model ArticleTag {
+  articleId String
+  tagId     String
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@index([tagId])
+}
+
+model ArticleRevision {
+  id          String   @id @default(cuid())
+  articleId   String
+  contentHtml String   @db.Text
+  editedById  String
+  editedAt    DateTime @default(now())
+
+  article  Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  editedBy User    @relation(fields: [editedById], references: [id])
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  articleId    String
+  filename     String
+  path         String
+  size         Int
+  mimeType     String
+  color        String?  // hex boja ikonice fajla (npr. "#e11d48"), null = podrazumevana
+  uploadedById String
+  uploadedAt   DateTime @default(now())
+
+  article    Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id])
+}
+
+/** Custom emoji koje admin otpremi (pored standardnog Unicode emoji seta u editoru). */
+model CustomEmoji {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  url          String
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+}
