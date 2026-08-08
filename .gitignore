@@ -45,8 +45,10 @@ tunnel.log
 # lokalno skladiste otpremljenih fajlova
 /storage/uploads/*
 /storage/attachments/*
+/storage/support/*
 !/storage/uploads/.gitkeep
 !/storage/attachments/.gitkeep
+!/storage/support/.gitkeep
 
 # typescript
 *.tsbuildinfo

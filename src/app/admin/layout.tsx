@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { LiveRefresh } from "@/components/layout/live-refresh";
+import { getUnreadTicketCount } from "@/lib/support";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -11,6 +13,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (session?.user?.role !== "ADMIN") {
     redirect("/");
   }
+
+  const unreadCount = await getUnreadTicketCount();
 
   return (
     <div className="mx-auto max-w-5xl 2xl:max-w-6xl space-y-6">
@@ -28,6 +32,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
           <Link href="/admin/log" className="text-muted-foreground hover:text-foreground">
             Log
+          </Link>
+          <Link
+            href="/admin/support"
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+          >
+            Support
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="px-1.5 py-0 text-xs">
+                {unreadCount}
+              </Badge>
+            )}
           </Link>
         </nav>
         <Button variant="ghost" size="sm" render={<Link href="/" />}>
