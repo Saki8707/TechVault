@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     select: { sectionId: true },
   });
   if (!article) {
-    return NextResponse.json({ error: "Članak nije pronađen." }, { status: 404 });
+    return NextResponse.json({ error: "Dodatni fajl nije pronađen." }, { status: 404 });
   }
 
   const allowed = await canWriteSection(

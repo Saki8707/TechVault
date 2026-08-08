@@ -32,6 +32,7 @@ model User {
   notes            ArticleNote[]
   noteAuditLogs    NoteAuditLog[]
   customEmoji      CustomEmoji[]
+  sectionContentUpdates Section[]    @relation("SectionContentUpdatedBy")
 }
 
 /** Evidencija unetih pretraga - za "najcesce pretrage" (po korisniku i globalno). */
@@ -73,6 +74,13 @@ model Section {
   parentId String?
   parent   Section?  @relation("SectionTree", fields: [parentId], references: [id], onDelete: Cascade)
   children Section[] @relation("SectionTree")
+
+  // Sopstveni tekstualni sadrzaj podkategorije (pisan istim editorom kao dodatni fajl),
+  // nezavisan od Article entiteta ispod nje.
+  contentHtml         String?   @db.Text
+  contentUpdatedAt     DateTime?
+  contentUpdatedById   String?
+  contentUpdatedBy     User?     @relation("SectionContentUpdatedBy", fields: [contentUpdatedById], references: [id], onDelete: SetNull)
 
   articles    Article[]
   permissions SectionPermission[]

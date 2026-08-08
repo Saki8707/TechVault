@@ -23,7 +23,7 @@ export async function addArticleBlockNote(
   const actor = await requireNoteCapableUser();
 
   const canRead = await canReadSection(actor, sectionId);
-  if (!canRead) throw new Error("Nemate pristup ovom članku.");
+  if (!canRead) throw new Error("Nemate pristup ovom dodatnom fajlu.");
 
   await addBlockNote({ articleId, blockId, body, actor });
   revalidatePath(`/kategorija/${sectionId}/clanak/${articleId}`);
@@ -33,7 +33,7 @@ export async function updateArticleNote(articleId: string, sectionId: string, no
   const actor = await requireNoteCapableUser();
 
   const canRead = await canReadSection(actor, sectionId);
-  if (!canRead) throw new Error("Nemate pristup ovom članku.");
+  if (!canRead) throw new Error("Nemate pristup ovom dodatnom fajlu.");
 
   await updateNoteAction({ noteId, body, actor });
   revalidatePath(`/kategorija/${sectionId}/clanak/${articleId}`);
@@ -43,7 +43,7 @@ export async function deleteArticleNote(articleId: string, sectionId: string, no
   const actor = await requireNoteCapableUser();
 
   const canRead = await canReadSection(actor, sectionId);
-  if (!canRead) throw new Error("Nemate pristup ovom članku.");
+  if (!canRead) throw new Error("Nemate pristup ovom dodatnom fajlu.");
 
   await deleteNoteAction({ noteId, actor });
   revalidatePath(`/kategorija/${sectionId}/clanak/${articleId}`);

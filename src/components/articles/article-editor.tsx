@@ -103,7 +103,7 @@ export function ArticleEditor({
       StarterKit,
       TiptapLink.configure({ openOnClick: false }),
       ResizableImage,
-      Placeholder.configure({ placeholder: "Napiši sadržaj članka... (kucaj # za tag)" }),
+      Placeholder.configure({ placeholder: "Napiši sadržaj... (kucaj # za tag)" }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
@@ -527,7 +527,7 @@ export function ArticleEditor({
               {noteDialog?.mode === "create" ? "Nova napomena" : "Izmeni napomenu"}
             </DialogTitle>
             <DialogDescription>
-              Napomena je vezana za selektovani deo teksta, ne za ceo članak.
+              Napomena je vezana za selektovani deo teksta, ne za ceo dodatni fajl.
             </DialogDescription>
           </DialogHeader>
 

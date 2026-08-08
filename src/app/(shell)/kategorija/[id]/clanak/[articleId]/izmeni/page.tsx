@@ -31,7 +31,7 @@ export default async function EditArticlePage({
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
-      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Izmeni članak</h1>
+      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Izmeni dodatni fajl</h1>
       <ArticleForm
         mode="edit"
         articleId={articleId}

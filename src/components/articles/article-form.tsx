@@ -81,17 +81,17 @@ export function ArticleForm(props: Props) {
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Naslov članka"
+            placeholder="Naslov dodatnog fajla"
             required
           />
           <Button
             type="button"
             variant="outline"
             size="icon"
-            aria-label="Boja ikonice članka"
+            aria-label="Boja ikonice dodatnog fajla"
             onClick={() => colorInputRef.current?.click()}
             style={color ? { color } : undefined}
-            title="Boja ikonice članka u listama"
+            title="Boja ikonice dodatnog fajla u listama"
           >
             <Palette className="h-4 w-4" />
           </Button>

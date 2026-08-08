@@ -54,7 +54,7 @@ export function ArticleActions({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Obriši članak?</DialogTitle>
+            <DialogTitle>Obriši dodatni fajl?</DialogTitle>
             <DialogDescription>Ova akcija se ne može poništiti.</DialogDescription>
           </DialogHeader>
           <DialogFooter>

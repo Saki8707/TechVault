@@ -181,7 +181,7 @@ export function SectionTreeEditor({ tree }: { tree: SectionNode[] }) {
                     <>
                       Ovo će trajno obrisati {dialog.childCount > 0 && `${dialog.childCount} podkategorija`}
                       {dialog.childCount > 0 && dialog.articleCount > 0 && " i "}
-                      {dialog.articleCount > 0 && `${dialog.articleCount} članaka`}. Ova akcija se ne
+                      {dialog.articleCount > 0 && `${dialog.articleCount} dodatnih fajlova`}. Ova akcija se ne
                       može poništiti.
                     </>
                   ) : (

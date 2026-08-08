@@ -29,7 +29,7 @@ export default async function NewArticlePage({
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-        Novi članak — {section.name}
+        Novi dodatni fajl — {section.name}
       </h1>
       <ArticleForm
         mode="create"

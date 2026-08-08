@@ -23,7 +23,7 @@ export async function updateTagTarget(
   await requireAdmin();
 
   if (targetType === "ARTICLE" && !targetArticleId) {
-    throw new Error("Izaberi članak za destinaciju.");
+    throw new Error("Izaberi dodatni fajl za destinaciju.");
   }
   if (targetType === "SECTION" && !targetSectionId) {
     throw new Error("Izaberi kategoriju za destinaciju.");

@@ -48,7 +48,7 @@ export default async function HomePage() {
                   <CardDescription className="flex items-center gap-3 pt-1 text-sm">
                     <span className="flex items-center gap-1">
                       <FileText className="h-3.5 w-3.5" />
-                      {total} {total === 1 ? "članak" : "članaka"}
+                      {total} {total === 1 ? "dodatni fajl" : "dodatnih fajlova"}
                     </span>
                     {subCount > 0 && (
                       <span>

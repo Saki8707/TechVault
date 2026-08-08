@@ -82,7 +82,7 @@ export default async function ArticleHistoryPage({
 
       {revisions.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          Još nema starijih verzija — ovo je prva verzija članka.
+          Još nema starijih verzija — ovo je prva verzija dodatnog fajla.
         </p>
       ) : (
         <div className="space-y-4">

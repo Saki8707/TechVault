@@ -137,13 +137,13 @@ export function TagManager({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Tagovi</h1>
         <p className="text-sm text-muted-foreground">
-          Podesi destinaciju svakog taga - kad korisnik klikne na tag u članku, odlazi na
-          izabrani članak, kategoriju ili URL. Bez destinacije, tag vodi na pretragu po imenu taga.
+          Podesi destinaciju svakog taga - kad korisnik klikne na tag u dodatnom fajlu, odlazi na
+          izabrani dodatni fajl, kategoriju ili URL. Bez destinacije, tag vodi na pretragu po imenu taga.
         </p>
       </div>
 
       {tags.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Još nema tagova - dodaju se pri pisanju članka.</p>
+        <p className="text-sm text-muted-foreground">Još nema tagova - dodaju se pri pisanju dodatnog fajla.</p>
       ) : (
         <div className="divide-y rounded-lg border">
           {tags.map((tag) => {
@@ -155,7 +155,7 @@ export function TagManager({
                     <TagIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <span className="font-medium">#{tag.name}</span>
                     <Badge variant="outline" className="text-xs">
-                      {tag.articleCount} {tag.articleCount === 1 ? "članak" : "članaka"}
+                      {tag.articleCount} {tag.articleCount === 1 ? "dodatni fajl" : "dodatnih fajlova"}
                     </Badge>
                   </div>
                   <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
@@ -187,7 +187,7 @@ export function TagManager({
           <DialogHeader>
             <DialogTitle>Destinacija taga #{edit?.tag.name}</DialogTitle>
             <DialogDescription>
-              Izaberi gde vodi klik na ovaj tag u prikazu članka.
+              Izaberi gde vodi klik na ovaj tag u prikazu dodatnog fajla.
             </DialogDescription>
           </DialogHeader>
 
@@ -204,7 +204,7 @@ export function TagManager({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="NONE">Bez destinacije (pretraga po tagu)</SelectItem>
-                    <SelectItem value="ARTICLE">Članak</SelectItem>
+                    <SelectItem value="ARTICLE">Dodatni fajl</SelectItem>
                     <SelectItem value="SECTION">Kategorija</SelectItem>
                     <SelectItem value="URL">Spoljni URL</SelectItem>
                   </SelectContent>
@@ -213,7 +213,7 @@ export function TagManager({
 
               {edit.targetType === "ARTICLE" && (
                 <div className="space-y-2">
-                  <Label>Članak</Label>
+                  <Label>Dodatni fajl</Label>
                   {selectedArticleLabel && (
                     <p className="text-xs text-muted-foreground">
                       Izabrano: <span className="font-medium">{selectedArticleLabel}</span>
@@ -222,7 +222,7 @@ export function TagManager({
                   <Input
                     value={edit.articleQuery}
                     onChange={(e) => setEdit({ ...edit, articleQuery: e.target.value })}
-                    placeholder="Pretraži članke..."
+                    placeholder="Pretraži dodatne fajlove..."
                   />
                   <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border p-1">
                     {filteredArticles.map((a) => (
@@ -295,7 +295,7 @@ export function TagManager({
           <DialogHeader>
             <DialogTitle>Obriši tag &quot;#{deleteTarget?.name}&quot;?</DialogTitle>
             <DialogDescription>
-              Tag će biti uklonjen sa svih članaka koji ga koriste. Ova akcija se ne može poništiti.
+              Tag će biti uklonjen sa svih dodatnih fajlova koji ga koriste. Ova akcija se ne može poništiti.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

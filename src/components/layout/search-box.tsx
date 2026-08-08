@@ -118,7 +118,7 @@ export function SearchBox() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={handleFocus}
-          placeholder="Pretraži sve kategorije i članke..."
+          placeholder="Pretraži sve kategorije i dodatne fajlove..."
           className="h-10 w-full rounded-full pl-11 text-base shadow-sm sm:h-11"
           autoComplete="off"
         />

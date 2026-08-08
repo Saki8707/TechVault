@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canWriteSection, getAccessibleSections } from "@/lib/permissions";
+import { SectionContent } from "@/components/sections/section-content";
 import {
   getSectionTree,
   getSectionPath,
@@ -27,7 +28,10 @@ import {
 export default async function SectionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const section = await prisma.section.findUnique({ where: { id } });
+  const section = await prisma.section.findUnique({
+    where: { id },
+    include: { contentUpdatedBy: { select: { name: true } } },
+  });
   if (!section) notFound();
 
   const session = await auth();
@@ -58,6 +62,14 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
     id,
   );
 
+  const contentUpdatedLabel =
+    section.contentUpdatedAt && section.contentUpdatedBy
+      ? `Izmenio/la ${section.contentUpdatedBy.name} · ${new Intl.DateTimeFormat("sr-RS", {
+          dateStyle: "long",
+          timeStyle: "short",
+        }).format(section.contentUpdatedAt)}`
+      : null;
+
   return (
     <div className="mx-auto max-w-6xl 2xl:max-w-7xl space-y-6">
       <Breadcrumb>
@@ -87,10 +99,20 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
         {canWrite && (
           <Button className="self-start sm:self-auto" render={<Link href={`/kategorija/${id}/novi`} />}>
             <Plus className="h-4 w-4" />
-            Novi članak
+            Novi dodatni fajl
           </Button>
         )}
       </div>
+
+      {canReadHere && (
+        <SectionContent
+          sectionId={id}
+          initialContentHtml={section.contentHtml}
+          canWrite={canWrite}
+          isAdmin={isAdmin}
+          updatedLabel={contentUpdatedLabel}
+        />
+      )}
 
       {visibleChildren.length > 0 && (
         <div>
@@ -113,7 +135,7 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
                   )}
                 </span>
                 <span className="shrink-0 text-sm text-muted-foreground">
-                  {countArticlesDeep(child)} članaka
+                  {countArticlesDeep(child)} dodatnih fajlova
                 </span>
               </Link>
             ))}
@@ -122,14 +144,14 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
       )}
 
       <div>
-        <h2 className="mb-2 text-base font-medium text-muted-foreground">Članci</h2>
+        <h2 className="mb-2 text-base font-medium text-muted-foreground">Dodatni fajlovi</h2>
         {!canReadHere ? (
           <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
             Nemaš pristup sadržaju ove kategorije - samo podkategorijama ispod.
           </p>
         ) : articles.length === 0 ? (
           <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            Nema još nijednog članka u ovoj kategoriji.
+            Nema još nijednog dodatnog fajla u ovoj kategoriji.
           </p>
         ) : (
           <div className="divide-y rounded-lg border">
