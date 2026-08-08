@@ -17,6 +17,7 @@ import { prisma } from "@/lib/prisma";
 import { canWriteSection, getAccessibleSections } from "@/lib/permissions";
 import { getReadMode } from "@/lib/admin-mode";
 import { SectionContent } from "@/components/sections/section-content";
+import { ArticleAttachments } from "@/components/articles/article-attachments";
 import {
   getSectionTree,
   getSectionPath,
@@ -31,7 +32,10 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
 
   const section = await prisma.section.findUnique({
     where: { id },
-    include: { contentUpdatedBy: { select: { name: true } } },
+    include: {
+      contentUpdatedBy: { select: { name: true } },
+      attachments: { orderBy: { uploadedAt: "asc" } },
+    },
   });
   if (!section) notFound();
 
@@ -117,6 +121,20 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
         />
       )}
 
+      {canReadHere && (
+        <ArticleAttachments
+          sectionId={id}
+          canWrite={effectiveCanWrite}
+          initialAttachments={section.attachments.map((a) => ({
+            id: a.id,
+            filename: a.filename,
+            size: a.size,
+            mimeType: a.mimeType,
+            color: a.color,
+          }))}
+        />
+      )}
+
       {visibleChildren.length > 0 && (
         <div>
           <h2 className="mb-2 text-base font-medium text-muted-foreground">Podkategorije</h2>
@@ -128,7 +146,10 @@ export default async function SectionPage({ params }: { params: Promise<{ id: st
                 className="flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-muted/50"
               >
                 <span className="flex min-w-0 items-center gap-2 text-base font-medium">
-                  <FolderTree className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <FolderTree
+                    className={`h-4 w-4 shrink-0 ${child.color ? "" : "text-muted-foreground"}`}
+                    style={child.color ? { color: child.color } : undefined}
+                  />
                   <span className="truncate">{child.name}</span>
                   {child.hidden && (
                     <Badge variant="secondary" className="shrink-0 gap-1">

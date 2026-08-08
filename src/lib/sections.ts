@@ -8,6 +8,7 @@ export type SectionNode = {
   order: number;
   hidden: boolean;
   guestVisible: boolean;
+  color: string | null;
   parentId: string | null;
   children: SectionNode[];
   articleCount: number;

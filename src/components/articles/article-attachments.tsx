@@ -22,10 +22,12 @@ function formatSize(bytes: number): string {
 
 export function ArticleAttachments({
   articleId,
+  sectionId,
   initialAttachments,
   canWrite,
 }: {
-  articleId: string;
+  articleId?: string;
+  sectionId?: string;
   initialAttachments: AttachmentItem[];
   canWrite: boolean;
 }) {
@@ -43,7 +45,8 @@ export function ArticleAttachments({
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("articleId", articleId);
+    if (articleId) formData.append("articleId", articleId);
+    if (sectionId) formData.append("sectionId", sectionId);
     formData.append("color", uploadColor);
 
     setIsUploading(true);

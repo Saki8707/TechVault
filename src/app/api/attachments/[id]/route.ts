@@ -25,9 +25,10 @@ export async function GET(
     return NextResponse.json({ error: "Prilog nije pronađen." }, { status: 404 });
   }
 
+  const targetSectionId = attachment.article?.sectionId ?? attachment.sectionId!;
   const canRead = await canReadSection(
     { id: session.user.id, role: session.user.role },
-    attachment.article.sectionId,
+    targetSectionId,
   );
   if (!canRead) {
     return NextResponse.json({ error: "Nemate pristup." }, { status: 403 });
@@ -65,9 +66,10 @@ export async function DELETE(
     return NextResponse.json({ error: "Prilog nije pronađen." }, { status: 404 });
   }
 
+  const targetSectionId = attachment.article?.sectionId ?? attachment.sectionId!;
   const allowed = await canWriteSection(
     { id: session.user.id, role: session.user.role },
-    attachment.article.sectionId,
+    targetSectionId,
   );
   if (!allowed) {
     return NextResponse.json({ error: "Nemate dozvolu." }, { status: 403 });

@@ -18,9 +18,10 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const file = formData.get("file");
   const articleId = formData.get("articleId");
+  const sectionId = formData.get("sectionId");
   const colorRaw = formData.get("color");
 
-  if (!(file instanceof File) || typeof articleId !== "string") {
+  if (!(file instanceof File) || (typeof articleId !== "string" && typeof sectionId !== "string")) {
     return NextResponse.json({ error: "Nedostaju podaci." }, { status: 400 });
   }
   const color =
@@ -29,17 +30,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Fajl je prevelik (max 25MB)." }, { status: 400 });
   }
 
-  const article = await prisma.article.findUnique({
-    where: { id: articleId },
-    select: { sectionId: true },
-  });
-  if (!article) {
-    return NextResponse.json({ error: "Dodatni fajl nije pronađen." }, { status: 404 });
+  // Prilog je vezan ILI za dodatni fajl (Article) ILI direktno za kategoriju
+  // (Section) - u oba slucaja dozvolu proveravamo preko iste sekcije.
+  let targetSectionId: string;
+  if (typeof articleId === "string") {
+    const article = await prisma.article.findUnique({
+      where: { id: articleId },
+      select: { sectionId: true },
+    });
+    if (!article) {
+      return NextResponse.json({ error: "Dodatni fajl nije pronađen." }, { status: 404 });
+    }
+    targetSectionId = article.sectionId;
+  } else {
+    const section = await prisma.section.findUnique({
+      where: { id: sectionId as string },
+      select: { id: true },
+    });
+    if (!section) {
+      return NextResponse.json({ error: "Kategorija nije pronađena." }, { status: 404 });
+    }
+    targetSectionId = section.id;
   }
 
   const allowed = await canWriteSection(
     { id: session.user.id, role: session.user.role },
-    article.sectionId,
+    targetSectionId,
   );
   if (!allowed) {
     return NextResponse.json({ error: "Nemate dozvolu za ovu kategoriju." }, { status: 403 });
@@ -53,7 +69,8 @@ export async function POST(req: NextRequest) {
 
   const attachment = await prisma.attachment.create({
     data: {
-      articleId,
+      articleId: typeof articleId === "string" ? articleId : null,
+      sectionId: typeof sectionId === "string" ? sectionId : null,
       filename: file.name,
       path: storedName,
       size: file.size,

@@ -75,6 +75,7 @@ model Section {
   order    Int       @default(0)
   hidden   Boolean   @default(false) // vidljivo samo adminu (i njegova podstabla) kad je true
   guestVisible Boolean @default(false) // sadrzaj dostupan Guest nalozima (nasledjuje se na podstablo)
+  color    String?   // hex boja ikonice kategorije u listama (npr. "#e11d48"), null = podrazumevana
   parentId String?
   parent   Section?  @relation("SectionTree", fields: [parentId], references: [id], onDelete: Cascade)
   children Section[] @relation("SectionTree")
@@ -87,6 +88,7 @@ model Section {
   contentUpdatedBy     User?     @relation("SectionContentUpdatedBy", fields: [contentUpdatedById], references: [id], onDelete: SetNull)
 
   articles    Article[]
+  attachments Attachment[]
   permissions SectionPermission[]
   tagTargets  Tag[]               @relation("TagTargetSection")
 
@@ -231,9 +233,12 @@ model ArticleRevision {
   editedBy User    @relation(fields: [editedById], references: [id])
 }
 
+// Prilog je vezan ILI za Article ILI za Section (tacno jedno od dva, vidi CHECK
+// konstrejnt u migraciji) - isti model, ista lista/upload/download komponenta za oba.
 model Attachment {
   id           String   @id @default(cuid())
-  articleId    String
+  articleId    String?
+  sectionId    String?
   filename     String
   path         String
   size         Int
@@ -242,8 +247,9 @@ model Attachment {
   uploadedById String
   uploadedAt   DateTime @default(now())
 
-  article    Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  uploadedBy User    @relation(fields: [uploadedById], references: [id])
+  article    Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  section    Section? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  uploadedBy User     @relation(fields: [uploadedById], references: [id])
 }
 
 /** Custom emoji koje admin otpremi (pored standardnog Unicode emoji seta u editoru). */

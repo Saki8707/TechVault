@@ -71,6 +71,16 @@ export async function toggleSectionGuestVisible(id: string, guestVisible: boolea
   revalidatePath("/admin/kategorije");
 }
 
+export async function setSectionColor(id: string, color: string | null) {
+  await requireAdmin();
+
+  const valid = color && /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
+  await prisma.section.update({ where: { id }, data: { color: valid } });
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/kategorije");
+}
+
 export async function deleteSection(id: string) {
   await requireAdmin();
 

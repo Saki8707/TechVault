@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, FolderTree, Eye, EyeOff, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, FolderTree, Eye, EyeOff, Users, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,7 @@ import {
   deleteSection,
   toggleSectionHidden,
   toggleSectionGuestVisible,
+  setSectionColor,
 } from "@/app/admin/kategorije/actions";
 
 type DialogState =
@@ -79,6 +80,14 @@ export function SectionTreeEditor({ tree }: { tree: SectionNode[] }) {
     }
   }
 
+  async function handleSetColor(node: SectionNode, color: string | null) {
+    try {
+      await setSectionColor(node.id, color);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Došlo je do greške.");
+    }
+  }
+
   async function submitDialog() {
     if (!dialog) return;
 
@@ -128,6 +137,7 @@ export function SectionTreeEditor({ tree }: { tree: SectionNode[] }) {
             onDelete={openDelete}
             onToggleHidden={handleToggleHidden}
             onToggleGuestVisible={handleToggleGuestVisible}
+            onSetColor={handleSetColor}
           />
         ))}
       </div>
@@ -218,6 +228,7 @@ function SectionRow({
   onDelete,
   onToggleHidden,
   onToggleGuestVisible,
+  onSetColor,
 }: {
   node: SectionNode;
   depth: number;
@@ -226,7 +237,10 @@ function SectionRow({
   onDelete: (node: SectionNode) => void;
   onToggleHidden: (node: SectionNode) => void;
   onToggleGuestVisible: (node: SectionNode) => void;
+  onSetColor: (node: SectionNode, color: string | null) => void;
 }) {
+  const colorInputRef = useRef<HTMLInputElement>(null);
+
   return (
     <div>
       <div
@@ -234,7 +248,10 @@ function SectionRow({
         style={{ paddingLeft: `${12 + depth * 20}px` }}
       >
         <div className="flex min-w-0 items-center gap-2">
-          <FolderTree className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <FolderTree
+            className={`h-4 w-4 shrink-0 ${node.color ? "" : "text-muted-foreground"}`}
+            style={node.color ? { color: node.color } : undefined}
+          />
           <span className="truncate text-sm font-medium">{node.name}</span>
           {node.hidden && (
             <span className="flex shrink-0 items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
@@ -253,6 +270,32 @@ function SectionRow({
           </span>
         </div>
         <div className="flex shrink-0 items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Boja ikonice kategorije"
+            onClick={() => colorInputRef.current?.click()}
+            style={node.color ? { color: node.color } : undefined}
+          >
+            <Palette className="h-3.5 w-3.5" />
+          </Button>
+          <input
+            ref={colorInputRef}
+            type="color"
+            value={node.color ?? "#6b7280"}
+            onChange={(e) => onSetColor(node, e.target.value)}
+            className="sr-only"
+          />
+          {node.color && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Ukloni boju"
+              onClick={() => onSetColor(node, null)}
+            >
+              <span className="text-xs text-muted-foreground">×</span>
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon-sm"
@@ -305,6 +348,7 @@ function SectionRow({
           onDelete={onDelete}
           onToggleHidden={onToggleHidden}
           onToggleGuestVisible={onToggleGuestVisible}
+          onSetColor={onSetColor}
         />
       ))}
     </div>
