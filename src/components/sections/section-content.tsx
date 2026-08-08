@@ -48,7 +48,11 @@ export function SectionContent({
     setEditing(false);
   }
 
-  if (editing) {
+  // Kad podkategorija jos nema sadrzaj, a korisnik sme da pise, editor je odmah
+  // otvoren i spreman za kucanje - bez dodatnog klika na dugme.
+  const showEditor = editing || (canWrite && !saved);
+
+  if (showEditor) {
     return (
       <div className="space-y-2">
         <ArticleEditor content={draft} onChange={setDraft} isAdmin={isAdmin} />
@@ -57,27 +61,18 @@ export function SectionContent({
             <Save className="h-4 w-4" />
             {isSaving ? "Čuvanje..." : "Sačuvaj"}
           </Button>
-          <Button size="sm" variant="outline" onClick={handleCancel} disabled={isSaving}>
-            <X className="h-4 w-4" />
-            Otkaži
-          </Button>
+          {saved && (
+            <Button size="sm" variant="outline" onClick={handleCancel} disabled={isSaving}>
+              <X className="h-4 w-4" />
+              Otkaži
+            </Button>
+          )}
         </div>
       </div>
     );
   }
 
-  if (!saved) {
-    if (!canWrite) return null;
-    return (
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="w-full rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground hover:bg-muted/50"
-      >
-        Ova podkategorija još nema sadržaj. Klikni da dodaš.
-      </button>
-    );
-  }
+  if (!saved) return null;
 
   return (
     <div className="space-y-2">
