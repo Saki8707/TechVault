@@ -9,6 +9,7 @@ import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
+import FontFamily from "@tiptap/extension-font-family";
 import Highlight from "@tiptap/extension-highlight";
 import { TagMention } from "@/components/articles/tag-mention";
 import { NoteAnchor } from "@/components/articles/note-anchor";
@@ -59,6 +60,15 @@ import {
 } from "@/components/ui/dialog";
 
 export type EditorNote = PendingNote & { canManage?: boolean };
+
+const FONT_OPTIONS = [
+  { label: "Podrazumevani font", value: "" },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Times New Roman", value: "'Times New Roman', serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Verdana", value: "Verdana, sans-serif" },
+  { label: "Courier New", value: "'Courier New', monospace" },
+];
 
 async function uploadImage(file: File): Promise<string> {
   const formData = new FormData();
@@ -111,6 +121,7 @@ export function ArticleEditor({
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TextStyle,
       Color,
+      FontFamily,
       Highlight.configure({ multicolor: true }),
       BlockBackground,
       TagMention,
@@ -305,6 +316,26 @@ export function ArticleEditor({
   return (
     <div className="rounded-md border">
       <div className="flex flex-wrap items-center gap-0.5 border-b bg-muted/30 p-1">
+        <select
+          aria-label="Font"
+          value={(editor.getAttributes("textStyle").fontFamily as string | undefined) ?? ""}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (!value) {
+              editor.chain().focus().unsetFontFamily().run();
+            } else {
+              editor.chain().focus().setFontFamily(value).run();
+            }
+          }}
+          className="h-7 rounded-md border bg-background px-1.5 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {FONT_OPTIONS.map((f) => (
+            <option key={f.label} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+        <Separator orientation="vertical" className="mx-1 h-5" />
         <ToolbarButton
           active={editor.isActive("bold")}
           onClick={() => editor.chain().focus().toggleBold().run()}
